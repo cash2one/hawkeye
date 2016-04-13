@@ -1,0 +1,4 @@
+proxy.txt
+*.pyc
+.env/
+*.log
