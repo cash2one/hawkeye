@@ -17,11 +17,12 @@ _user_agents = ['Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/
 
 class Parser(object):
 
-    def __init__(self, Proxy=Proxy, protocol='http', referer='', user_agents=_user_agents):
+    def __init__(self, Proxy=Proxy, protocol='http', referer='', user_agents=_user_agents, encoding=''):
         self.proxies = list(Proxy().get_proxies())
         self.user_agents = list(user_agents)
         self.protocol = protocol
         self.referer = referer
+        self.encoding = encoding
         self.search_handler = None
         self.result_handler = None
         self.start_time = None
@@ -76,6 +77,8 @@ class Parser(object):
                 pass
             return self.request(keyword_url)
         if req.ok:
+            if self.encoding:
+                req.encoding = self.encoding
             search_results = self.search_handler(keyword, req.text)
             results = []
             for result in search_results:
@@ -88,6 +91,10 @@ class Parser(object):
                     try:
                         req = requests.get(url, proxies=proxies, headers=headers, timeout=timeout, allow_redirects=result['redirect'])
                         if req.ok:
+                            if result.get('encoding'):
+                                req.encoding = result.get('encoding')
+                            elif self.encoding:
+                                req.encoding = self.encoding
                             result['result'] = req.text
                             if result['redirect']:
                                 result[request] = req.url
@@ -95,5 +102,8 @@ class Parser(object):
                         logging.INFO('Request result {} error'.format(url))
                         # print e
                         pass
-                results.append(self.result_handler(keyword, result))
+                if result.get('multi'):
+                    results.extend(self.result_handler(keyword, result))
+                else:
+                    results.append(self.result_handler(keyword, result))
             return results

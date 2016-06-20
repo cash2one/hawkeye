@@ -14,7 +14,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 
-def google_search_handler(text):
+def google_search_handler(keyword, text):
     soup = BeautifulSoup.BeautifulSoup(text)
     contents = soup.findAll('cite', attrs={'class': '_Rm'})
     results = []
@@ -24,7 +24,7 @@ def google_search_handler(text):
     return results
 
 
-def baidu_search_handler(text):
+def baidu_search_handler(keyword, text):
     soup = BeautifulSoup.BeautifulSoup(text)
     results = []
     contents = soup.findAll('div', attrs={'class': 'result c-container '})
@@ -36,7 +36,7 @@ def baidu_search_handler(text):
     return results
 
 
-def sogou_search_handler(text):
+def sogou_search_handler(keyword, text):
     soup = BeautifulSoup.BeautifulSoup(text)
     contents = soup.findAll('div', attrs={'class': 'r-sech site_query'})
     results = []
@@ -51,13 +51,15 @@ def result_handler(keyword, result):
 
 
 def main():
-    keywords = ['wooyun.org']
+    import sys
+    keywords = sys.argv[1:]
     keywords = ('site:' + keyword for keyword in keywords)
     sogou_parser = Parser(protocol='https', referer='https://www.sogou.com/')
     search_handler = sogou_search_handler
     from url_constructor import sogou_url_constructor as url_constructor
     results = sogou_parser.start(keywords=keywords, url_constructor=url_constructor, search_handler=search_handler, result_handler=result_handler)
-    print set(results)
+    for result in set(results):
+        print result
 
 
 if __name__ == '__main__':
